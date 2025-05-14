@@ -17,6 +17,7 @@
     remove_value/4,
     get_one_value/4,
     get_station_mean/3,
+    get_station_min/3,
     get_daily_mean/3,
     get_maximum_growth_time/3,
     get_hourly_mean/4
@@ -150,6 +151,28 @@ get_station_mean(NameOrCoords, Type, Monitor) ->
             case Values of
                 [] -> {error, "No measurements found for this station and type"};
                 _ -> lists:sum(Values) / length(Values)
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% @doc Calculate the minimum value of a specific type for a given station.
+%% Finds all measurements of the specified `Type` for the station identified by `NameOrCoords`.
+%% Returns the minimum value found.
+%% If no measurements are found for the station and type, or if the station does not exist,
+%% it returns an error tuple `{error, Reason}`.
+get_station_min(NameOrCoords, Type, Monitor) ->
+    #{data := Data} = Monitor,
+    % Find the station
+    case find_station(NameOrCoords, Monitor) of
+        {ok, _StationName, StationCoords} ->
+            % Filter measurements for this station and type
+            Values = [Value || {{Coords, _DateTime, MeasType}, Value} <- maps:to_list(Data),
+                Coords =:= StationCoords, MeasType =:= Type],
+            % Return minimum value if there are measurements
+            case Values of
+                [] -> {error, "No measurements found for this station and type"};
+                _  -> lists:min(Values)
             end;
         {error, Reason} ->
             {error, Reason}
