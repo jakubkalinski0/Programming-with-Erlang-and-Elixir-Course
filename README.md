@@ -1,35 +1,35 @@
 # Programming with Erlang and Elixir
 
-Rozwiązania laboratoryjne z kursu *Programming in Erlang and Elixir* (AGH UST).
+Laboratory solutions for the *Programming in Erlang and Elixir* course (AGH UST).
 
 ## Laboratories
 
-### [Lab 1 — Erlang language basics](src/Lab1_Erlang_language_basics/)
+### [Lab 1: Erlang language basics](Lab1_Erlang_language_basics/)
 
-Podstawy języka Erlang: listy, rekurencja, kalkulator jakości powietrza.
+Erlang fundamentals: lists, recursion, and an air quality calculator.
 
-### [Lab 2 — Functional programming in Erlang](src/Lab2_functional_programming_in_Erlang/)
+### [Lab 2: Functional programming in Erlang](Lab2_functional_programming_in_Erlang/)
 
-Programowanie funkcyjne: funkcje anonimowe, quicksort, moduł `pollution`.
+Functional programming: anonymous functions, quicksort, and the `pollution` module.
 
-### [Lab 3 — Process programming in Erlang](src/Lab3_Process_programming_in_Erlang/)
+### [Lab 3: Process programming in Erlang](Lab3_Process_programming_in_Erlang/)
 
-Procesy: ping-pong, obliczenia równoległe (parcel locker), serwer `pollution_server`.
+Processes: ping-pong, parallel parcel locker search, and the `pollution_server` module.
 
-### [Lab 4 — Design patterns and OTP](src/Lab4_Design_patterns_and_OTP/)
+### [Lab 4: Design patterns and OTP](Lab4_Design_patterns_and_OTP/)
 
-OTP: `gen_server`, `supervisor`, `gen_statem`, projekt rebar3 `pollution_server`.
+OTP patterns: `gen_server`, `supervisor`, `gen_statem`, and the rebar3 `pollution_server` project.
 
-### [Lab 5 — Introduction to Elixir](src/Lab5_Introduction_to_Elixir/)
+### [Lab 5: Introduction to Elixir](Lab5_Introduction_to_Elixir/)
 
-Podstawy Elixira i integracja z aplikacją Erlang (notatnik LiveBook `lab5.livemd`).
+Elixir basics and integration with the Erlang application (LiveBook notebook `lab5.livemd`).
 
-> Przed uruchomieniem Lab 5 wykonaj `rebar3 compile` w katalogu Lab 4.
+Before running Lab 5, compile the Erlang app in Lab 4 with `rebar3 compile`.
 
-### [Lab 6 — Databases in Elixir](src/Lab6_Databases_in_Elixir/)
+### [Lab 6: Databases in Elixir](Lab6_Databases_in_Elixir/)
 
-Mix, Ecto, SQLite — aplikacja `pollutiondb` z parserem CSV i loaderem danych.
+Mix, Ecto, and SQLite: the `pollutiondb` app with CSV parsing and data loading.
 
-### [Lab 7 — Phoenix web application](src/Lab7_Phoenix_web_application/)
+### [Lab 7: Phoenix web application](Lab7_Phoenix_web_application/)
 
-Aplikacja webowa Phoenix z LiveView — projekt `pollutiondb`.
+Phoenix web app with LiveView: the `pollutiondb` project.
