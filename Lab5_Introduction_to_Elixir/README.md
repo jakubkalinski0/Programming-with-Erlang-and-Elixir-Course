@@ -1,7 +1,7 @@
 # Laboratorium nr 5 - podstawy języka Elixir
 
-> **Uwaga:** Przed uruchomieniem notatnika LiveBook (`lab5.livemd`) skompiluj aplikację Erlang w Lab 4:
-> `rebar3 compile` w katalogu `src/Lab4_Design_patterns_and_OTP/`.
+> **Note:** Before running the LiveBook notebook (`lab5.livemd`), compile the Erlang app in Lab 4:
+> `rebar3 compile` in `Lab4_Design_patterns_and_OTP/`.
 
 ## Przed zajęciami proszę o:
 1. Uruchomienie interpretera `iex` lub `LiveBook`
