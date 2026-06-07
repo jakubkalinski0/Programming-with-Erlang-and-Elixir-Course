@@ -1,0 +1,179 @@
+# Elixir lab 1
+
+## Parsing
+
+```elixir
+defmodule Parser do
+  def parseline(linestring) do
+    [datatime, type, val, id, name, coords] = String.split(linestring, ";")
+
+    %{
+      :name => name,
+      :value => String.to_float(val),
+      :coords => coords
+        |> String.split(",")
+        |> Enum.map(&String.to_float/1)
+        |> List.to_tuple(),
+      :id => id |> String.to_integer(),
+      :type => type,
+      :datatime => parse_datetime(datatime)
+    }
+  end
+
+  def parse_datetime(datetime_str) do
+    year = String.slice(datetime_str, 0..3) |> String.to_integer()
+    month = String.slice(datetime_str, 5..6) |> String.to_integer()
+    day = String.slice(datetime_str, 8..9) |> String.to_integer()
+    hour = String.slice(datetime_str, 11..12) |> String.to_integer()
+    minute = String.slice(datetime_str, 14..15) |> String.to_integer()
+    second = String.slice(datetime_str, 17..18) |> String.to_integer()
+    {{year, month, day}, {hour, minute, second}}
+  end
+end
+
+path_to_csv = Path.expand("data/pollution.csv", __DIR__)
+
+path_to_csv
+|> File.read!()
+|> String.trim()
+|> String.split("\n", trim: true)
+|> Enum.map(&Parser.parseline/1)
+```
+
+```elixir
+# Komórka 2: Wczytanie i Parsowanie Danych (używając Twojego modułu Pars)
+
+path_to_csv = Path.expand("data/pollution.csv", __DIR__)
+
+raw_lines_from_file =
+  path_to_csv
+  |> File.read!()
+  |> String.trim()
+  |> String.split("\n", trim: true)
+
+parsed_results =
+  Enum.map(raw_lines_from_file, fn line ->
+    trimmed_line = String.trim(line)
+    if trimmed_line == "" do
+      nil # Ignoruj całkowicie puste linie
+    else
+      Parser.parseline(trimmed_line)
+    end
+  end)
+
+# Odfiltruj błędy parsowania i linie nil
+data_for_server = Enum.filter(parsed_results, &is_map(&1)) # Zmień nazwę zmiennej dla jasności
+parsing_errors = Enum.filter(parsed_results, &(&1 != nil and not is_map(&1)))
+
+IO.puts "Liczba poprawnie sparsowanych rekordów: #{length(data_for_server)}"
+if length(parsing_errors) > 0 do
+  IO.inspect(parsing_errors, label: "Błędy parsowania", limit: 10)
+end
+
+# Przygotowanie listy unikalnych stacji do dodania do serwera Erlanga
+# `Pars.parseline` zwraca mapę z kluczami :name i :coords
+unique_stations_for_server =
+  data_for_server
+  |> Enum.map(fn r -> {r.name, r.coords} end) # Użyj kluczy :name i :coords z Twojego parsera
+  |> Enum.uniq()
+
+IO.puts "Liczba unikalnych stacji (nazwa, współrzędne) do dodania: #{unique_stations_for_server |> length()}"
+
+# Zmienna `data_for_server` będzie używana w kolejnych komórkach do ładowania pomiarów.
+# Zmienna `unique_stations_for_server` będzie używana do ładowania stacji.
+```
+
+## Using Erlang Pollution module
+
+Empty Monitor
+
+```elixir
+# Komórka 1: Setup aplikacji Erlanga
+
+path_to_erlang_app_ebin = Path.expand("../Lab4_Design_patterns_and_OTP/_build/default/lib/pollution_server/ebin", __DIR__)
+erlang_app_name = :pollution_server
+
+Code.append_path(path_to_erlang_app_ebin)
+Application.stop(erlang_app_name) # Spróbuj zatrzymać, na wszelki wypadek
+
+case Application.ensure_all_started(erlang_app_name) do
+  {:ok, _apps} ->
+    IO.puts("OK: Aplikacja Erlanga '#{erlang_app_name}' oraz jej zależności uruchomione.")
+  {:error, {^erlang_app_name, {:already_started, _}}} -> # Poprawione dopasowanie
+    IO.puts("INFO: Aplikacja Erlanga '#{erlang_app_name}' była już uruchomiona.")
+  {:error, {app, reason}} ->
+    IO.puts("BŁĄD: Nie udało się uruchomić aplikacji Erlanga '#{app}': #{inspect(reason)}")
+    raise "Nie udało się uruchomić aplikacji Erlanga" # Opcjonalnie: rzuć błąd, aby zatrzymać wykonanie notatnika
+  other ->
+    IO.puts("INFO: Wynik uruchamiania aplikacji Erlanga '#{erlang_app_name}': #{inspect(other)}")
+end
+```
+
+```elixir
+# Komórka 4: Definicja Funkcji do Wstawiania Danych (POPRAWIONA)
+
+insert_stations_fn = fn ->
+  Enum.each(unique_stations_for_server, fn {station_name_from_csv, station_coords_from_csv} ->
+    :pollution_gen_server.add_station(station_name_from_csv, station_coords_from_csv)
+  end)
+end
+
+insert_data_fn = fn ->
+  Enum.each(data_for_server, fn record ->
+    station_identifier = record.name
+    measurement_type_from_csv = record.type
+    value_from_csv = record.value
+    datetime_from_csv = record.datatime # <--- POPRAWKA TUTAJ (użyj :datatime)
+
+    :pollution_gen_server.add_value(
+      station_identifier,
+      datetime_from_csv,
+      measurement_type_from_csv,
+      value_from_csv
+    )
+  end)
+end
+```
+
+```elixir
+defmodule Timer do
+  def get_time_in_sec_and_result(function) do
+    {time_micro_s, result} = function |> :timer.tc()
+    {time_micro_s * 10 ** -6, result}
+  end
+
+  def measure_time_in_sec(function) do
+    function |> get_time_in_sec_and_result |> elem(0)
+  end
+end
+```
+
+```elixir
+{station_load_time, _} = Timer.get_time_in_sec_and_result(insert_stations_fn)
+IO.puts "Czas ładowania stacji: #{station_load_time} s"
+```
+
+```elixir
+{data_load_time, _} = Timer.get_time_in_sec_and_result(insert_data_fn)
+IO.puts "Czas ładowania pomiarów: #{data_load_time} s"
+```
+
+```elixir
+# :pollution_gen_server.get()
+```
+
+```elixir
+target_station_name_arkusz = "9910 Polska, Kraków, Studencka"
+{time_sm_arkusz, result_sm_arkusz} = Timer.get_time_in_sec_and_result(fn ->
+  :pollution_gen_server.get_station_mean(target_station_name_arkusz, "PM10")
+end)
+IO.puts "get_station_mean dla '#{target_station_name_arkusz}', PM10: Czas = #{time_sm_arkusz} s, Wynik = #{inspect(result_sm_arkusz)}"
+```
+
+```elixir
+date_target_arkusz_pm25 = {2024, 2, 10}
+{time_dm_arkusz_pm25, result_dm_arkusz_pm25} = Timer.get_time_in_sec_and_result(fn ->
+  :pollution_gen_server.get_daily_mean("PM25", date_target_arkusz_pm25)
+end)
+IO.puts "get_daily_mean dla #{inspect(date_target_arkusz_pm25)}, PM25: Czas = #{time_dm_arkusz_pm25} s, Wynik = #{inspect(result_dm_arkusz_pm25)}"
+```
