@@ -1,4 +1,4 @@
-# Programming with Erlang and Elixir
+# Programming with Erlang and Elixir Course
 
 Laboratory solutions for the *Programming in Erlang and Elixir* course (AGH UST).
 
