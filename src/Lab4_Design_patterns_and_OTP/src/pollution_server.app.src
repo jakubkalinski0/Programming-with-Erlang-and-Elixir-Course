@@ -1,0 +1,31 @@
+{application, pollution_server, % Nazwa Twojej aplikacji
+ [{description, "Pollution Monitoring OTP application"}, % Możesz zmienić opis
+  {vsn, "0.1.0"}, % Wersja aplikacji
+  {registered, []}, % Lista globalnie zarejestrowanych procesów przez tę aplikację (zazwyczaj pusta na początku)
+
+  % Moduł callbacku aplikacji (musi implementować behaviour 'application')
+  {mod, {pollution_server_app, []}}, % Pierwszy argument to atom modułu, drugi to argumenty dla start/2
+
+  % Aplikacje, od których ta aplikacja zależy i które muszą być uruchomione wcześniej
+  {applications,
+   [kernel, % Zawsze potrzebne
+    stdlib  % Zawsze potrzebne
+    % Jeśli używasz np. Cowboy, musiałbyś tu dodać :cowboy itp.
+   ]},
+
+  {env,[]}, % Zmienne środowiskowe specyficzne dla aplikacji (konfiguracja)
+
+  % Lista wszystkich modułów, które są częścią tej aplikacji.
+  % To jest kluczowe dla poprawnego ładowania i działania.
+  {modules, [
+   pollution_server_app,       % Moduł implementujący behaviour 'application'
+   pollution_server_sup,       % Główny supervisor tej aplikacji
+   pollution_gen_server,     % Twój główny gen_server do obsługi danych
+   pollution,                  % Moduł z logiką biznesową (np. z Lab2/Lab3)
+   pollution_value_collector_gen_statem % Twój gen_statem (jeśli jest częścią tej aplikacji)
+   % Jeśli nie jest, lub jest startowany niezależnie, możesz go usunąć z tej listy.
+  ]},
+
+  {licenses, ["Apache-2.0"]}, % Możesz dostosować lub usunąć
+  {links, []} % Linki do dokumentacji, repozytoriów itp. (opcjonalne)
+ ]}.
